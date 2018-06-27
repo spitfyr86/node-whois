@@ -16,16 +16,18 @@
 
   this.lookup = (function(_this) {
     return function(addr, options, done) {
-      var _lookup, parts, proxy, server, socket, tld;
+      var _lookup, parts, proxy, server, encoding, socket, tld;
       if (typeof done === 'undefined' && typeof options === 'function') {
         done = options;
         options = {};
       }
       _.defaults(options, {
-        follow: 2
+        follow: 2,
+        encoding: 'utf-8'
       });
       done = _.once(done);
       server = options.server;
+      encoding = options.encoding;
       proxy = options.proxy;
       if (!server) {
         switch (true) {
@@ -79,6 +81,7 @@
         if (server.punycode !== false && options.punycode !== false) {
           idn = punycode.toASCII(addr);
         }
+        socket.setEncoding(encoding);
         socket.write(server.query.replace('$addr', idn));
         data = '';
         socket.on('data', function(chunk) {
@@ -152,7 +155,14 @@
   })(this);
 
   if (module === require.main) {
-    optimist = require('optimist').usage('$0 [options] address')["default"]('s', null).alias('s', 'server').describe('s', 'whois server')["default"]('f', 0).alias('f', 'follow').describe('f', 'number of times to follow redirects')["default"]('p', null).alias('p', 'proxy').describe('p', 'SOCKS proxy').boolean('v')["default"]('v', false).alias('v', 'verbose').describe('v', 'show verbose results').boolean('h')["default"]('h', false).alias('h', 'help').describe('h', 'display this help message');
+    optimist = require('optimist')
+      .usage('$0 [options] address')["default"]('s', null).alias('s', 'server').describe('s', 'whois server')
+        ["default"]('e', 'utf-8').alias('e', 'encoding').describe('e', 'the character encoding to be used on writing the whois data')
+        ["default"]('f', 0).alias('f', 'follow').describe('f', 'number of times to follow redirects')
+        ["default"]('p', null).alias('p', 'proxy').describe('p', 'SOCKS proxy')
+        .boolean('v')["default"]('v', false).alias('v', 'verbose').describe('v', 'show verbose results')
+        .boolean('h')["default"]('h', false).alias('h', 'help').describe('h', 'display this help message');
+
     if (optimist.argv.h) {
       console.log(optimist.help());
       process.exit(0);
@@ -163,6 +173,7 @@
     }
     this.lookup(optimist.argv._[0], {
       server: optimist.argv.server,
+      encoding: optimist.argv.encoding,
       follow: optimist.argv.follow,
       proxy: optimist.argv.proxy,
       verbose: optimist.argv.verbose
