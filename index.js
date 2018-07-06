@@ -98,7 +98,7 @@
           var match;
           if (options.follow > 0) {
             match = data.replace(/\r/gm, '').match(/(ReferralServer|Registrar Whois|Whois Server|WHOIS Server):[^\S\n]*(r?whois:\/\/)?(.*)/);
-            if ((match != null) && match[3] !== server.host) {
+            if ((match != null) && match[3].trim() !== server.host) {
               options = _.extend({}, options, {
                 follow: options.follow - 1,
                 server: match[3]
