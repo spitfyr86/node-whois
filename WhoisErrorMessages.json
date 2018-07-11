@@ -1,0 +1,6 @@
+{
+    "WhoisErrorMessages": [
+        "Domain does not exist.\n",
+        "Could not retrieve Whois data.\n"
+    ]
+}
