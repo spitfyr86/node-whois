@@ -139,8 +139,8 @@
                 data: data ? data : tempWhoisData
               }
             ]);
-          } else {
-            return done(null, data);
+          } else { // return tempWhoisData as priority
+            return done(null, tempWhoisData ? tempWhoisData : data);
           }
         });
       };
