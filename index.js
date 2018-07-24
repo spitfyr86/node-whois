@@ -2,32 +2,32 @@
 (function() {
   var _, net, optimist, punycode, socks, util, WHOIS_ERROR_MESSAGES;
 
-  _ = require('underscore');
+  _ = require("underscore");
 
-  net = require('net');
+  net = require("net");
 
-  socks = require('socks');
+  socks = require("socks");
 
-  punycode = require('punycode');
+  punycode = require("punycode");
 
-  util = require('util');
-  
-  WHOIS_ERROR_MESSAGES = require('./WhoisErrorMessages.json').WhoisErrorMessages;
+  util = require("util");
 
-  this.SERVERS = require('./servers.json');
- 
+  WHOIS_ERROR_MESSAGES = require("./WhoisErrorMessages.json").WhoisErrorMessages;
+
+  this.SERVERS = require("./servers.json");
+
   this.lookup = (function(_this) {
     var tempWhoisData;
-    
+
     return function(addr, options, done) {
       var _lookup, parts, proxy, server, encoding, socket, tld;
-      if (typeof done === 'undefined' && typeof options === 'function') {
+      if (typeof done === "undefined" && typeof options === "function") {
         done = options;
         options = {};
       }
       _.defaults(options, {
         follow: 2,
-        encoding: 'utf-8'
+        encoding: "utf-8"
       });
       done = _.once(done);
       server = options.server;
@@ -35,11 +35,11 @@
       proxy = options.proxy;
       if (!server) {
         switch (true) {
-          case _.contains(addr, '@'):
-            done(new Error('lookup: email addresses not supported'));
+          case _.contains(addr, "@"):
+            done(new Error("lookup: email addresses not supported"));
             return;
           case net.isIP(addr) !== 0:
-            server = _this.SERVERS['_']['ip'];
+            server = _this.SERVERS["_"]["ip"];
             break;
           default:
             tld = punycode.toASCII(addr);
@@ -48,35 +48,35 @@
               if (!tld || server) {
                 break;
               }
-              tld = tld.replace(/^.+?(\.|$)/, '');
+              tld = tld.replace(/^.+?(\.|$)/, "");
             }
         }
       }
       if (!server) {
-        done(new Error('lookup: no whois server is known for this kind of object'));
+        done(new Error("lookup: no whois server is known for this kind of object"));
         return;
       }
-      if (typeof server === 'string') {
-        parts = server.split(':');
+      if (typeof server === "string") {
+        parts = server.split(":");
         server = {
           host: parts[0],
-          port: parts[1]
+          port: parts[1],
         };
       }
-      if (typeof proxy === 'string') {
-        parts = proxy.split(':');
+      if (typeof proxy === "string") {
+        parts = proxy.split(":");
         proxy = {
           ipaddress: parts[0],
-          port: parseInt(parts[1])
+          port: parseInt(parts[1]),
         };
       }
       _.defaults(server, {
         port: 43,
-        query: "$addr\r\n"
+        query: "$addr\r\n",
       });
       if (proxy) {
         _.defaults(proxy, {
-          type: 5
+          type: 5,
         });
       }
       _lookup = function(socket, done) {
@@ -86,29 +86,29 @@
           idn = punycode.toASCII(addr);
         }
         socket.setEncoding(encoding);
-        socket.write(server.query.replace('$addr', idn));
-        data = '';
-        socket.on('data', function(chunk) {
+        socket.write(server.query.replace("$addr", idn));
+        data = "";
+        socket.on("data", function(chunk) {
           return data += chunk;
         });
-        socket.on('timeout', function() {
+        socket.on("timeout", function() {
           socket.destroy();
-          return done(new Error('lookup: timeout'));
+          return done(new Error("lookup: timeout"));
         });
-        socket.on('error', function(err) {
+        socket.on("error", function(err) {
           return done(err);
         });
-        return socket.on('close', function(err) {
+        return socket.on("close", function(err) {
           var match;
           if (options.follow > 0) {
-            match = data.replace(/\r/gm, '').match(/(ReferralServer|Registrar Whois|Whois Server|WHOIS Server):[^\S\n]*(r?whois:\/\/)?(.*)/);
+            match = data.replace(/\r/gm, "").match(/(ReferralServer|Registrar Whois|Whois Server|WHOIS Server):[^\S\n]*(r?whois:\/\/)?(.*)/);
             if (match) {
               tempWhoisData = data;
             }
             if ((match != null) && match[3].trim() !== server.host) {
               options = _.extend({}, options, {
                 follow: options.follow - 1,
-                server: match[3]
+                server: match[3],
               });
               _this.lookup(addr, options, function(err, parts) {
                 if (err != null) {
@@ -118,8 +118,8 @@
                   return done(null, [
                     {
                       server: server,
-                      data: data ? data : tempWhoisData
-                    }
+                      data: data ? data : tempWhoisData,
+                    },
                   ].concat(parts));
                 } else {
                   if (WHOIS_ERROR_MESSAGES.includes(parts) && tempWhoisData) {
@@ -136,11 +136,14 @@
             return done(null, [
               {
                 server: server,
-                data: data ? data : tempWhoisData
-              }
+                data: data ? data : tempWhoisData,
+              },
             ]);
-          } else { // return tempWhoisData as priority
-            return done(null, tempWhoisData ? tempWhoisData : data);
+          } else {
+            if (!data.toLowerCase().includes(addr.toLowerCase()) && tempWhoisData) {
+              return done(null, tempWhoisData);
+            }
+            return done(null, data);
           }
         });
       };
@@ -149,8 +152,8 @@
           proxy: proxy,
           target: {
             host: server.host,
-            port: server.port
-          }
+            port: server.port,
+          },
         }, function(err, socket, info) {
           if (err != null) {
             return done(err);
@@ -166,13 +169,10 @@
   })(this);
 
   if (module === require.main) {
-    optimist = require('optimist')
-      .usage('$0 [options] address')["default"]('s', null).alias('s', 'server').describe('s', 'whois server')
-        ["default"]('e', 'utf-8').alias('e', 'encoding').describe('e', 'the character encoding to be used on writing the whois data')
-        ["default"]('f', 0).alias('f', 'follow').describe('f', 'number of times to follow redirects')
-        ["default"]('p', null).alias('p', 'proxy').describe('p', 'SOCKS proxy')
-        .boolean('v')["default"]('v', false).alias('v', 'verbose').describe('v', 'show verbose results')
-        .boolean('h')["default"]('h', false).alias('h', 'help').describe('h', 'display this help message');
+    optimist = require("optimist")
+      .usage("$0 [options] address").default("s", null).alias("s", "server").describe("s", "whois server").default("e", "utf-8").alias("e", "encoding").describe("e", "the character encoding to be used on writing the whois data").default("f", 0).alias("f", "follow").describe("f", "number of times to follow redirects").default("p", null).alias("p", "proxy").describe("p", "SOCKS proxy")
+        .boolean("v").default("v", false).alias("v", "verbose").describe("v", "show verbose results")
+        .boolean("h").default("h", false).alias("h", "help").describe("h", "display this help message");
 
     if (optimist.argv.h) {
       console.log(optimist.help());
@@ -187,7 +187,7 @@
       encoding: optimist.argv.encoding,
       follow: optimist.argv.follow,
       proxy: optimist.argv.proxy,
-      verbose: optimist.argv.verbose
+      verbose: optimist.argv.verbose,
     }, (function(_this) {
       return function(err, data) {
         var i, len, part, results;
