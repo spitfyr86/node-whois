@@ -1,6 +1,8 @@
 {
     "WhoisErrorMessages": [
+        "You are not authorized to access or query our WHOIS database through the use of high-volume, automated, electronic processes or for the purpose or purposes of using the data in any manner that violates these terms of use",
         "Domain does not exist.\n",
-        "Could not retrieve Whois data.\n"
+        "Could not retrieve Whois data.\n",
+        "No entries found in source RIPE"
     ]
 }
