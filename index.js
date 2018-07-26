@@ -138,6 +138,9 @@
                   }
                 }
               });
+              if (data || tempWhoisData) {
+                return done(null, data ? data : tempWhoisData);
+              }
               return;
             }
           }
@@ -153,7 +156,7 @@
             if (!data.toLowerCase().includes(addr.toLowerCase()) && tempWhoisData && tempWhoisData.includes(addr)) {
               return done(null, tempWhoisData);
             }
-            return done(null, data);
+            return done(null, data ? data : tempWhoisData);
           }
         });
       };
