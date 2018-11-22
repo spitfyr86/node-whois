@@ -99,6 +99,9 @@
           return done(new Error("lookup: timeout"));
         });
         socket.on("error", function (err) {
+          if (data || tempWhoisData) {
+            return done(null, data ? data : tempWhoisData);
+          }
           return done(err);
         });
         return socket.on("close", function (err) {
