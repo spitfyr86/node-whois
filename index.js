@@ -141,6 +141,9 @@
                   }
                 }
               });
+              if (data || tempWhoisData) {
+                return done(null, data ? data : tempWhoisData);
+              }
               return;
             }
           }
