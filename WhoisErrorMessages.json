@@ -4,6 +4,7 @@
         "Domain does not exist.\n",
         "Could not retrieve Whois data.\n",
         "No entries found in source RIPE",
-        "No match for domain"
+        "No match for domain",
+        "The queried object does not exist"
     ]
 }
