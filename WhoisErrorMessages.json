@@ -5,6 +5,7 @@
         "Could not retrieve Whois data.\n",
         "No entries found in source RIPE",
         "No match for domain",
-        "The queried object does not exist"
+        "The queried object does not exist",
+        "Unknown domain name"
     ]
 }

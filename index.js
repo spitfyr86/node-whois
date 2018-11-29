@@ -159,6 +159,17 @@
             if (!data.toLowerCase().includes(addr.toLowerCase()) && tempWhoisData && tempWhoisData.includes(addr)) {
               return done(null, tempWhoisData);
             }
+            // check if there is an error
+            var hasError = false;
+            for (var i = 0; i < WHOIS_ERROR_MESSAGES.length; i++) {
+              if (data.includes(WHOIS_ERROR_MESSAGES[i])) {
+                hasError = true;
+                break;
+              }
+            }
+            if ((WHOIS_ERROR_MESSAGES.includes(data) || hasError) && tempWhoisData) {
+              return done(null, tempWhoisData);
+            }
             return done(null, data ? data : tempWhoisData);
           }
         });
