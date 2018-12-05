@@ -89,6 +89,8 @@
         socket.write(server.query.replace("$addr", idn));
         data = "";
         socket.on("data", function (chunk) {
+		  // reset temp data
+          tempWhoisData = undefined
           return data += chunk;
         });
         socket.on("timeout", function () {
